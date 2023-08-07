@@ -30,27 +30,43 @@ app.use(passport.session())
 connect(path)
 
 const userSchema = new Schema({
-    usermail: 'String',
+    username: 'String',
     password: 'String'
 })
 
+userSchema.plugin(passportLocalMongoose)
+
 const userAuth = new model('authUser', userSchema)
 
+passport.use(userAuth.createStrategy())
+passport.serializeUser(userAuth.serializeUser())
+passport.deserializeUser(userAuth.deserializeUser())
+
+// signup page
 app.get('/', (req, res) => {
     res.render('signup')
 })
 
-app.post('/register', async (req, res) => {
-    console.log(req.body)
+// dashboard page
+app.get('/dashboard', (req, res) => {
+    if (req.isAuthenticated()) {
+        res.render('dashboard')
+    } else {
+        res.send('user not allowed')
+    }
+})
 
-    const newUser = userAuth({
-        usermail: req.body.email,
-        password: req.body.password
+app.post('/register', (req, res) => {
+
+    userAuth.register({ username: req.body.username }, req.body.password, (err, user) => {
+        if (err) {
+            console.log(err)
+        } else {
+            passport.authenticate('local')(req, res, () => {
+                res.redirect('/dashboard')
+            })
+        }
     })
-
-    await newUser.save()
-    console.log("saved succesfully")
-    res.redirect('/')
 })
 
 app.listen(port, () => {
