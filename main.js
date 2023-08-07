@@ -43,48 +43,72 @@ passport.serializeUser(userAuth.serializeUser())
 passport.deserializeUser(userAuth.deserializeUser())
 
 // signup page
-app.get('/', (req, res) => {
+app.get('/signup', (req, res) => {
     if (req.isAuthenticated()) {
-        res.redirect('dashboard')
-    }
-    else {
-
+        res.redirect('/')
+    } else {
         res.render('signup')
     }
 })
 
 // dashboard page
-app.get('/dashboard', (req, res) => {
+app.get('/', (req, res) => {
     if (req.isAuthenticated()) {
         res.render('dashboard')
     } else {
-        res.redirect('/')
+        res.redirect('/login')
     }
 })
 
-app.post('/register', (req, res) => {
+// login page
+app.get('/login', (req, res) => {
+    if (req.isAuthenticated()) {
+        res.redirect('/')
+    } else {
+        res.render('login')
+    }
+})
 
+// new user handle
+app.post('/register', (req, res) => {
     userAuth.register({ username: req.body.username }, req.body.password, (err, user) => {
         if (err) {
             console.log(err)
         } else {
-            passport.authenticate('local')(req, res, () => {
-                res.redirect('/dashboard')
-            })
+            passport.authenticate('local')(req, res, () => res.redirect('/'))
         }
     })
 })
 
+// user login handle
+app.post('/loginUser', (req, res) => {
+    const username = req.body.username
+    const password = req.body.password
+    const user = new userAuth({
+        username: username,
+        password: password
+    })
+    req.login(user, (err, user) => {
+        if (err) {
+            console.log(err)
+        } else {
+            passport.authenticate('local')(req, res, () => { res.redirect('/') })
+        }
+    })
+})
+
+// user logout handle
 app.get('/logout', (req, res) => {
     req.logout(err => {
         if (err) {
             console.log(err)
         } else {
-            res.redirect('/')
+            res.redirect('/login')
         }
     })
 })
 
+// server start
 app.listen(port, () => {
     console.log("server started!")
 })
