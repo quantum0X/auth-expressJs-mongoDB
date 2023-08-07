@@ -44,7 +44,13 @@ passport.deserializeUser(userAuth.deserializeUser())
 
 // signup page
 app.get('/', (req, res) => {
-    res.render('signup')
+    if (req.isAuthenticated()) {
+        res.redirect('dashboard')
+    }
+    else {
+
+        res.render('signup')
+    }
 })
 
 // dashboard page
@@ -52,7 +58,7 @@ app.get('/dashboard', (req, res) => {
     if (req.isAuthenticated()) {
         res.render('dashboard')
     } else {
-        res.send('user not allowed')
+        res.redirect('/')
     }
 })
 
@@ -65,6 +71,16 @@ app.post('/register', (req, res) => {
             passport.authenticate('local')(req, res, () => {
                 res.redirect('/dashboard')
             })
+        }
+    })
+})
+
+app.get('/logout', (req, res) => {
+    req.logout(err => {
+        if (err) {
+            console.log(err)
+        } else {
+            res.redirect('/')
         }
     })
 })
